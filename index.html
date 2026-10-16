@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FindBarber &mdash; Book Smarter, Cut Better</title>
+  <meta name="description" content="FindBarber: Real-time barber booking with live schedule management, surge pricing, and instant deposit payments." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- SCREEN 0: SPLASH / ROLE SELECTOR -->
+  <div id="screen-splash" class="screen active">
+    <div class="splash-bg">
+      <div class="splash-blob blob-1"></div>
+      <div class="splash-blob blob-2"></div>
+      <div class="splash-blob blob-3"></div>
+    </div>
+    <div class="splash-content">
+      <div class="brand">
+        <div class="brand-icon">&#9986;</div>
+        <h1 class="brand-name">FindBarber</h1>
+        <p class="brand-tagline">Book Smarter. Cut Better.</p>
+      </div>
+      <div class="role-cards">
+        <button id="btn-role-customer" class="role-card" onclick="selectRole('customer')">
+          <div class="role-icon">&#128100;</div>
+          <div class="role-label">I am a Customer</div>
+          <div class="role-desc">Book appointments and skip the wait</div>
+          <div class="role-arrow">&#8594;</div>
+        </button>
+        <button id="btn-role-barber" class="role-card role-card-barber" onclick="selectRole('barber')">
+          <div class="role-icon">&#9988;&#65039;</div>
+          <div class="role-label">I am a Barber</div>
+          <div class="role-desc">Manage your chair and grow your business</div>
+          <div class="role-arrow">&#8594;</div>
+        </button>
+      </div>
+      <p class="splash-footer">Already have an account? <a href="#" onclick="showLogin()">Sign In</a></p>
+    </div>
+  </div>
+
+  <!-- SCREEN 1: CUSTOMER REGISTRATION -->
+  <div id="screen-customer-register" class="screen">
+    <div class="app-header">
+      <button class="back-btn" onclick="goBack('screen-splash')">&#8592;</button>
+      <span class="header-title">Create Account</span>
+      <span></span>
+    </div>
+    <div class="register-content">
+      <div class="register-hero">
+        <div class="register-avatar customer-avatar">&#128100;</div>
+        <h2>Welcome, Customer!</h2>
+        <p>Set up your profile to start booking premium cuts.</p>
+      </div>
+      <form class="register-form" onsubmit="completeCustomerRegister(event)">
+        <div class="input-group">
+          <label for="cust-name">Full Name</label>
+          <input id="cust-name" type="text" placeholder="e.g. Arjun Mehta" required />
+        </div>
+        <div class="input-group">
+          <label for="cust-phone">Phone Number</label>
+          <div class="phone-input">
+            <span class="phone-prefix">&#127470;&#127475; +91</span>
+            <input id="cust-phone" type="tel" placeholder="98765 43210" maxlength="10" required />
+          </div>
+        </div>
+        <div class="input-group">
+          <label for="cust-email">Email (optional)</label>
+          <input id="cust-email" type="email" placeholder="arjun@email.com" />
+        </div>
+        <div class="input-group">
+          <label for="cust-location">Your Area / Locality</label>
+          <input id="cust-location" type="text" placeholder="e.g. Koramangala, Bangalore" required />
+        </div>
+        <button type="submit" class="btn-primary btn-full" id="btn-cust-register">
+          Find Barbers Near Me &#8594;
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: CUSTOMER - SALON AND SERVICE PICKER -->
+  <div id="screen-customer-salons" class="screen">
+    <div class="app-header sticky-header">
+      <button class="back-btn" onclick="goBack('screen-customer-register')">&#8592;</button>
+      <span class="header-title">Book a Cut</span>
+      <div class="header-avatar" id="cust-header-avatar">AJ</div>
+    </div>
+    <div class="customer-flow">
+      <div class="section-label">&#128205; Nearby Salons</div>
+      <div class="salon-cards" id="salon-list"></div>
+      <div id="service-section" class="hidden-section">
+        <div class="section-label">&#128136; Choose Services</div>
+        <div class="service-grid" id="service-list"></div>
+        <div class="selection-summary" id="service-summary">
+          <div class="summary-row">
+            <span>Selected:</span>
+            <span id="summary-services">None</span>
+          </div>
+          <div class="summary-row">
+            <span>Est. Duration:</span>
+            <span id="summary-duration">&#8212;</span>
+          </div>
+          <div class="summary-row total-row">
+            <span>Total:</span>
+            <span id="summary-total">&#8377;0</span>
+          </div>
+        </div>
+        <button class="btn-primary btn-full" id="btn-pick-slot" onclick="goToSlots()" disabled>
+          Pick a Time Slot &#8594;
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: CUSTOMER - SLOT SELECTION -->
+  <div id="screen-customer-slots" class="screen">
+    <div class="app-header sticky-header">
+      <button class="back-btn" onclick="goBack('screen-customer-salons')">&#8592;</button>
+      <span class="header-title">Pick a Slot</span>
+      <div class="header-avatar" id="cust-slot-avatar">AJ</div>
+    </div>
+    <div class="slots-flow">
+      <div class="slots-salon-info" id="slot-salon-info"></div>
+      <div class="date-strip" id="date-strip"></div>
+      <div class="slot-legend">
+        <div class="legend-item"><span class="badge badge-off-peak">OFF-PEAK</span> Discounted</div>
+        <div class="legend-item"><span class="badge badge-peak">PEAK</span> Standard</div>
+        <div class="legend-item"><span class="badge badge-full">FULL</span> No slots left</div>
+      </div>
+      <div class="slots-grid" id="slots-grid"></div>
+      <div class="slot-cta" id="slot-cta" style="display:none;">
+        <div class="selected-slot-info" id="selected-slot-display"></div>
+        <button class="btn-primary btn-full" onclick="goToPayment()">Confirm &amp; Pay Deposit &#8594;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: CUSTOMER - BOOKING CONFIRMATION / PASS -->
+  <div id="screen-customer-confirm" class="screen">
+    <div class="app-header">
+      <span></span>
+      <span class="header-title">Booking Pass</span>
+      <span></span>
+    </div>
+    <div class="confirm-flow">
+      <div class="confirm-success-anim">
+        <div class="success-circle">
+          <span class="success-tick">&#10003;</span>
+        </div>
+        <h2 class="confirm-title">You are Booked!</h2>
+        <p class="confirm-subtitle">Deposit paid. Your slot is secured.</p>
+      </div>
+      <div class="booking-pass" id="booking-pass-card">
+        <div class="pass-header">
+          <div class="pass-brand">&#9986; FindBarber</div>
+          <div class="pass-type">BOOKING PASS</div>
+        </div>
+        <div class="pass-body">
+          <div class="pass-row">
+            <div class="pass-field">
+              <div class="pass-label">CLIENT</div>
+              <div class="pass-value" id="pass-client">&#8212;</div>
+            </div>
+            <div class="pass-field">
+              <div class="pass-label">DATE</div>
+              <div class="pass-value" id="pass-date">&#8212;</div>
+            </div>
+          </div>
+          <div class="pass-row">
+            <div class="pass-field">
+              <div class="pass-label">TIME</div>
+              <div class="pass-value" id="pass-time">&#8212;</div>
+            </div>
+            <div class="pass-field">
+              <div class="pass-label">DURATION</div>
+              <div class="pass-value" id="pass-duration">&#8212;</div>
+            </div>
+          </div>
+          <div class="pass-divider"><span>&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;</span></div>
+          <div class="pass-row">
+            <div class="pass-field">
+              <div class="pass-label">SALON</div>
+              <div class="pass-value" id="pass-salon">&#8212;</div>
+            </div>
+            <div class="pass-field">
+              <div class="pass-label">BARBER</div>
+              <div class="pass-value" id="pass-barber">&#8212;</div>
+            </div>
+          </div>
+          <div class="pass-row">
+            <div class="pass-field full">
+              <div class="pass-label">ADDRESS</div>
+              <div class="pass-value" id="pass-address">&#8212;</div>
+            </div>
+          </div>
+          <div class="pass-divider"><span>&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;</span></div>
+          <div class="pass-row">
+            <div class="pass-field">
+              <div class="pass-label">SERVICES</div>
+              <div class="pass-value" id="pass-services">&#8212;</div>
+            </div>
+            <div class="pass-field">
+              <div class="pass-label">DEPOSIT PAID</div>
+              <div class="pass-value highlight-value" id="pass-deposit">&#8212;</div>
+            </div>
+          </div>
+          <div class="pass-qr">
+            <div class="qr-box">
+              <div class="qr-mock">
+                <div class="qr-corner tl"></div>
+                <div class="qr-corner tr"></div>
+                <div class="qr-corner bl"></div>
+              </div>
+            </div>
+            <div class="pass-booking-id" id="pass-id-text">FB-XXXXXX</div>
+          </div>
+        </div>
+      </div>
+      <div class="cancel-policy-box">
+        <span class="cancel-icon">&#9432;</span>
+        <span>Free cancellation up to <strong>6 hours</strong> before your appointment</span>
+      </div>
+      <div class="confirm-actions">
+        <button class="btn-danger" id="btn-cancel-booking" onclick="cancelBooking()">&#10005; Cancel Booking</button>
+        <button class="btn-primary" onclick="sharePass()">&#128228; Share Pass</button>
+      </div>
+      <button class="btn-ghost" onclick="goHome()">&#8592; Back to Home</button>
+    </div>
+  </div>
+
+  <!-- SCREEN 5: BARBER REGISTRATION (unchanged) -->
+  <div id="screen-barber-register" class="screen">
+    <div class="app-header">
+      <button class="back-btn" onclick="goBack('screen-splash')">&#8592;</button>
+      <span class="header-title">Barber Profile</span>
+      <div class="step-pill">Step 1 of 3</div>
+    </div>
+    <div class="register-content">
+      <div class="register-hero">
+        <div class="register-avatar barber-avatar">&#9988;&#65039;</div>
+        <h2>Set Up Your Chair</h2>
+        <p>List your shop and start taking bookings in minutes.</p>
+      </div>
+      <form class="register-form" onsubmit="completeBarberRegister(event)">
+        <div class="input-group">
+          <label for="barber-name">Your Name</label>
+          <input id="barber-name" type="text" placeholder="e.g. Ravi Kumar" required />
+        </div>
+        <div class="input-group">
+          <label for="barber-shop">Shop / Salon Name</label>
+          <input id="barber-shop" type="text" placeholder="e.g. Classic Cuts" required />
+        </div>
+        <div class="input-group">
+          <label for="barber-phone">Phone Number</label>
+          <div class="phone-input">
+            <span class="phone-prefix">&#127470;&#127475; +91</span>
+            <input id="barber-phone" type="tel" placeholder="98765 43210" maxlength="10" required />
+          </div>
+        </div>
+        <div class="input-group">
+          <label for="barber-address">Shop Address</label>
+          <input id="barber-address" type="text" placeholder="e.g. 12 MG Road, Koramangala" required />
+        </div>
+        <div class="input-group">
+          <label>Opening Hours</label>
+          <div class="hours-row">
+            <input id="barber-open" type="time" value="09:00" />
+            <span>to</span>
+            <input id="barber-close" type="time" value="21:00" />
+          </div>
+        </div>
+        <button type="submit" class="btn-primary btn-full">
+          Next: Add Services &#8594;
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- SCREEN 5b: BARBER SETUP - SERVICES -->
+  <div id="screen-barber-services-setup" class="screen">
+    <div class="app-header">
+      <button class="back-btn" onclick="goBack('screen-barber-register')">&#8592;</button>
+      <span class="header-title">Your Services</span>
+      <div class="step-pill">Step 2 of 3</div>
+    </div>
+    <div class="setup-content">
+      <div class="setup-hero">
+        <div class="setup-emoji">&#128136;</div>
+        <h2>Add Your Services</h2>
+        <p>Customers will see exactly these services with your prices and durations.</p>
+      </div>
+
+      <!-- Quick-add presets -->
+      <div class="preset-label">Quick Add (tap to add)</div>
+      <div class="preset-chips" id="preset-chips"></div>
+
+      <!-- Custom service form -->
+      <div class="add-service-form" id="add-svc-form">
+        <div class="form-row-3">
+          <div class="input-group">
+            <label>Service Name</label>
+            <input id="new-svc-name" type="text" placeholder="e.g. Skin Fade" />
+          </div>
+          <div class="input-group">
+            <label>Price (&#8377;)</label>
+            <input id="new-svc-price" type="number" placeholder="250" min="0" />
+          </div>
+          <div class="input-group">
+            <label>Duration (mins)</label>
+            <input id="new-svc-duration" type="number" placeholder="40" min="5" max="180" />
+          </div>
+        </div>
+        <button class="btn-outline btn-full" onclick="addCustomService()">+ Add This Service</button>
+      </div>
+
+      <!-- Added services list -->
+      <div class="added-services-label">Your Services <span id="svc-count-badge" class="count-badge">0</span></div>
+      <div class="added-services-list" id="added-services-list">
+        <div class="empty-services-hint">No services added yet. Use quick-add above or fill the form.</div>
+      </div>
+
+      <button class="btn-primary btn-full" id="btn-services-next" onclick="goToChairSetup()" disabled>
+        Next: Shop Setup &#8594;
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN 5c: BARBER SETUP - CHAIRS -->
+  <div id="screen-barber-chairs-setup" class="screen">
+    <div class="app-header">
+      <button class="back-btn" onclick="goBack('screen-barber-services-setup')">&#8592;</button>
+      <span class="header-title">Shop Setup</span>
+      <div class="step-pill">Step 3 of 3</div>
+    </div>
+    <div class="setup-content">
+      <div class="setup-hero">
+        <div class="setup-emoji">&#127968;</div>
+        <h2>How many chairs?</h2>
+        <p>This controls how many customers can book the same time slot simultaneously.</p>
+      </div>
+
+      <div class="chair-selector">
+        <button class="chair-adj-btn" onclick="adjustChairs(-1)">&#8722;</button>
+        <div class="chair-display">
+          <div class="chair-num" id="chair-count-display">4</div>
+          <div class="chair-lbl">Barbers / Chairs</div>
+        </div>
+        <button class="chair-adj-btn" onclick="adjustChairs(1)">+</button>
+      </div>
+      <div class="chair-hint">
+        <span class="hint-icon">&#128161;</span>
+        At peak hours, up to <strong id="chair-hint-num">4</strong> customers can book the same slot simultaneously.
+      </div>
+
+      <div class="setup-section-title">Slot Duration</div>
+      <div class="slot-duration-options">
+        <button class="slot-dur-opt active" id="dur-15" onclick="selectSlotDur(15)">15 min</button>
+        <button class="slot-dur-opt" id="dur-30" onclick="selectSlotDur(30)">30 min</button>
+        <button class="slot-dur-opt" id="dur-45" onclick="selectSlotDur(45)">45 min</button>
+        <button class="slot-dur-opt" id="dur-60" onclick="selectSlotDur(60)">60 min</button>
+      </div>
+      <p class="slot-dur-hint">Each booking slot on your calendar will be this duration.</p>
+
+      <div class="setup-section-title">Days Open</div>
+      <div class="days-selector" id="days-selector">
+        <button class="day-btn active" data-day="0" onclick="toggleDay(this)">Sun</button>
+        <button class="day-btn active" data-day="1" onclick="toggleDay(this)">Mon</button>
+        <button class="day-btn active" data-day="2" onclick="toggleDay(this)">Tue</button>
+        <button class="day-btn active" data-day="3" onclick="toggleDay(this)">Wed</button>
+        <button class="day-btn active" data-day="4" onclick="toggleDay(this)">Thu</button>
+        <button class="day-btn active" data-day="5" onclick="toggleDay(this)">Fri</button>
+        <button class="day-btn" data-day="6" onclick="toggleDay(this)">Sat</button>
+      </div>
+
+      <button class="btn-primary btn-full" onclick="launchBarberDashboard()" style="margin-top:24px;">
+        &#127968; Launch My Dashboard &#8594;
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN 6: BARBER DASHBOARD (tabbed) -->
+  <div id="screen-barber-schedule" class="screen">
+    <div class="app-header barber-header">
+      <div class="barber-header-info">
+        <div class="barber-shop-name" id="barber-header-shop">Classic Cuts</div>
+        <div class="barber-status-pill open" id="barber-status-pill">&#128994; Open</div>
+      </div>
+      <div class="barber-header-right">
+        <div class="chairs-badge" id="barber-chairs-badge">4 chairs</div>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="dash-tabs">
+      <button class="dash-tab active" id="tab-schedule" onclick="switchTab('schedule')">&#128197; Schedule</button>
+      <button class="dash-tab" id="tab-slots" onclick="switchTab('slots')">&#128336; All Slots</button>
+      <button class="dash-tab" id="tab-block" onclick="switchTab('block')">&#128683; Block</button>
+      <button class="dash-tab" id="tab-services" onclick="switchTab('services')">&#128136; Services</button>
+    </div>
+
+    <!-- TAB: SCHEDULE -->
+    <div id="dash-tab-schedule" class="dash-tab-content active">
+      <div class="quick-actions">
+        <button class="quick-action-btn delay-btn" id="btn-delay" onclick="triggerDelay()">
+          <span class="qa-icon">&#9201;</span>
+          <span class="qa-label">Running Late</span>
+          <span class="qa-sub">Notify clients</span>
+        </button>
+        <button class="quick-action-btn walkin-btn" id="btn-walkin" onclick="addWalkIn()">
+          <span class="qa-icon">+</span>
+          <span class="qa-label">Walk-In</span>
+          <span class="qa-sub">Block slot now</span>
+        </button>
+        <button class="quick-action-btn queue-btn">
+          <span class="qa-icon">&#128202;</span>
+          <span class="qa-label">Queue</span>
+          <span class="qa-sub" id="queue-count">4 waiting</span>
+        </button>
+      </div>
+      <div class="stats-strip">
+        <div class="stat-item">
+          <div class="stat-val" id="stat-bookings">7</div>
+          <div class="stat-lbl">Booked</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-val" id="stat-done">2</div>
+          <div class="stat-lbl">Done</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-val" id="stat-revenue">&#8377;850</div>
+          <div class="stat-lbl">Earned</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <div class="stat-val" id="stat-pending">&#8377;200</div>
+          <div class="stat-lbl">Deposits</div>
+        </div>
+      </div>
+      <div class="schedule-label">&#128197; Today &#8212; <span id="today-date-label"></span></div>
+      <div class="timeline" id="barber-timeline"></div>
+    </div>
+
+    <!-- TAB: ALL SLOTS -->
+    <div id="dash-tab-slots" class="dash-tab-content">
+      <div class="tab-inner-pad">
+        <div class="tab-section-title">Slot Availability</div>
+        <div class="date-strip" id="barber-date-strip"></div>
+        <div class="slots-legend-bar">
+          <div class="sleg"><span class="sleg-dot free"></span>Available</div>
+          <div class="sleg"><span class="sleg-dot partial"></span>Partially Booked</div>
+          <div class="sleg"><span class="sleg-dot full"></span>Full</div>
+          <div class="sleg"><span class="sleg-dot blocked"></span>Blocked</div>
+        </div>
+        <div class="barber-slots-grid" id="barber-slots-grid"></div>
+      </div>
+    </div>
+
+    <!-- TAB: BLOCK SLOTS -->
+    <div id="dash-tab-block" class="dash-tab-content">
+      <div class="tab-inner-pad">
+        <div class="tab-section-title">Block Time Slots</div>
+        <p class="tab-desc">Reduce available chairs for a specific time period. Customers will only see the remaining chairs.</p>
+        <div class="block-form">
+          <div class="input-group">
+            <label>Date</label>
+            <input id="block-date" type="date" />
+          </div>
+          <div class="input-group">
+            <label>From Time</label>
+            <input id="block-from" type="time" value="14:00" />
+          </div>
+          <div class="input-group">
+            <label>To Time</label>
+            <input id="block-to" type="time" value="17:00" />
+          </div>
+          <div class="input-group">
+            <label>Available Barbers During This Time</label>
+            <div class="chair-mini-selector">
+              <button class="chair-adj-btn sm" onclick="adjustBlockChairs(-1)">&#8722;</button>
+              <div class="chair-mini-display">
+                <span id="block-chairs-display">3</span>
+                <span class="chair-mini-of">of <span id="block-chairs-total">4</span> barbers</span>
+              </div>
+              <button class="chair-adj-btn sm" onclick="adjustBlockChairs(1)">+</button>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Reason (optional)</label>
+            <input id="block-reason" type="text" placeholder="e.g. Only 3 barbers present" />
+          </div>
+          <button class="btn-primary btn-full" onclick="addBlock()">&#128683; Add Block</button>
+        </div>
+
+        <div class="tab-section-title" style="margin-top:24px;">Active Blocks</div>
+        <div id="blocks-list" class="blocks-list">
+          <div class="empty-hint">No blocks added yet.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: SERVICES -->
+    <div id="dash-tab-services" class="dash-tab-content">
+      <div class="tab-inner-pad">
+        <div class="tab-section-title">Your Services</div>
+        <div class="managed-services-list" id="managed-services-list"></div>
+        <div class="add-service-form" style="margin-top:16px;">
+          <div class="form-row-3">
+            <div class="input-group">
+              <label>Service Name</label>
+              <input id="mgmt-svc-name" type="text" placeholder="New service" />
+            </div>
+            <div class="input-group">
+              <label>Price (&#8377;)</label>
+              <input id="mgmt-svc-price" type="number" placeholder="200" min="0" />
+            </div>
+            <div class="input-group">
+              <label>Duration (mins)</label>
+              <input id="mgmt-svc-duration" type="number" placeholder="30" min="5" />
+            </div>
+          </div>
+          <button class="btn-outline btn-full" onclick="addManagedService()">+ Add Service</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DELAY NOTIFICATION -->
+  <div id="modal-delay" class="modal-overlay hidden" onclick="closeModal('modal-delay')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-icon">&#9201;</div>
+      <h3 class="modal-title">Send Delay Alert</h3>
+      <p class="modal-desc">Choose how long you are running late. All upcoming clients will be notified instantly via SMS.</p>
+      <div class="delay-options">
+        <button class="delay-opt" onclick="confirmDelay(10)">+10 mins</button>
+        <button class="delay-opt" onclick="confirmDelay(15)">+15 mins</button>
+        <button class="delay-opt" onclick="confirmDelay(20)">+20 mins</button>
+        <button class="delay-opt delay-opt-custom" onclick="confirmDelay(30)">+30 mins</button>
+      </div>
+      <button class="btn-ghost" onclick="closeModal('modal-delay')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- MODAL: WALK-IN -->
+  <div id="modal-walkin" class="modal-overlay hidden" onclick="closeModal('modal-walkin')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-icon">&#128694;</div>
+      <h3 class="modal-title">Add Walk-In Client</h3>
+      <p class="modal-desc">Quickly block the next available slot for a walk-in.</p>
+      <div class="input-group" style="text-align:left">
+        <label for="walkin-name">Client Name (optional)</label>
+        <input id="walkin-name" type="text" placeholder="Walk-in Customer" />
+      </div>
+      <div class="input-group" style="text-align:left">
+        <label>Service</label>
+        <select id="walkin-service" class="select-input"></select>
+      </div>
+      <button class="btn-primary btn-full" onclick="confirmWalkIn()">&#10003; Block Slot Now</button>
+      <button class="btn-ghost" onclick="closeModal('modal-walkin')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
